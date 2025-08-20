@@ -29,17 +29,33 @@ bool CardSprite::init(CardFaceType face, CardSuitType suit)
     _suit = suit;
 
     const char* suit_name[] = {"club", "diamond", "heart", "spade"};
-    auto suitSprite = Sprite::create(StringUtils::format("suits/%s.png", suit_name[(int)suit]));
-    suitSprite->setPosition(Vec2(30, 100));
-    this->addChild(suitSprite);
-
     const char* face_name[] = {"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"};
     const char* color_name[] = {"black", "red"};
     int color_idx = ((int)suit == (int)CardSuitType::CST_DIAMONDS || (int)suit == (int)CardSuitType::CST_HEARTS) ? 1 : 0;
 
-    auto faceSprite = Sprite::create(StringUtils::format("number/small_%s_%s.png", color_name[color_idx], face_name[(int)face]));
-    faceSprite->setPosition(Vec2(30, 150));
-    this->addChild(faceSprite);
+    // 1. Big number in the center
+    auto bigFaceSprite = Sprite::create(StringUtils::format("number/big_%s_%s.png", color_name[color_idx], face_name[(int)face]));
+    if (bigFaceSprite)
+    {
+        bigFaceSprite->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height / 2));
+        this->addChild(bigFaceSprite);
+    }
+
+    // 2. Small number in the top-left
+    auto smallFaceSprite = Sprite::create(StringUtils::format("number/small_%s_%s.png", color_name[color_idx], face_name[(int)face]));
+    if (smallFaceSprite)
+    {
+        smallFaceSprite->setPosition(Vec2(30, this->getContentSize().height - 30));
+        this->addChild(smallFaceSprite);
+    }
+
+    // 3. Suit in the top-right
+    auto suitSprite = Sprite::create(StringUtils::format("suits/%s.png", suit_name[(int)suit]));
+    if (suitSprite)
+    {
+        suitSprite->setPosition(Vec2(this->getContentSize().width - 30, this->getContentSize().height - 30));
+        this->addChild(suitSprite);
+    }
 
     return true;
 }
