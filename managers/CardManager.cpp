@@ -8,16 +8,19 @@
 
 USING_NS_CC;
 
-CardManager* CardManager::_instance = nullptr;
 
-CardManager* CardManager::getInstance()
-{
-    if (!_instance)
-    {
-        _instance = new CardManager();
-    }
-    return _instance;
-}
+
+
+
+#include "managers/CardManager.h"
+#include "models/CardModel.h"
+#include "cocos2d.h"
+#include <stack>
+#include <vector>
+#include <algorithm>
+#include <cmath>
+
+USING_NS_CC;
 
 CardManager::CardManager()
 {
@@ -25,69 +28,58 @@ CardManager::CardManager()
 
 void CardManager::processCardData(const rapidjson::Document& document, std::stack<CardModel*>& playfieldCardsA, std::stack<CardModel*>& playfieldCardsB, std::stack<CardModel*>& stackCardsA, std::stack<CardModel*>& stackCardsB)
 {
-    // Process Playfield cards
-    if (document.HasMember("Playfield") && document["Playfield"].IsArray()) {
-        std::vector<CardModel*> tempPlayfieldCards;
-        const rapidjson::Value& cards = document["Playfield"];
-        for (rapidjson::SizeType i = 0; i < cards.Size(); i++) {
-            const rapidjson::Value& cardData = cards[i];
-            if (cardData.IsObject() && cardData.HasMember("CardFace") && cardData.HasMember("CardSuit")) {
-                cocos2d::Vec2 position = cocos2d::Vec2::ZERO;
-                if (cardData.HasMember("Position") && cardData["Position"].IsObject()) {
-                    const rapidjson::Value& pos = cardData["Position"];
-                    if (pos.HasMember("x") && pos.HasMember("y") && pos["x"].IsInt() && pos["y"].IsInt()) {
-                        position.x = pos["x"].GetFloat();
-                        position.y = pos["y"].GetFloat();
-                    }
-                }
-                CardModel* cardModel = new CardModel(
-                    static_cast<CardFaceType>(cardData["CardFace"].GetInt()),
-                    static_cast<CardSuitType>(cardData["CardSuit"].GetInt()),
-                    position
-                );
-                tempPlayfieldCards.push_back(cardModel);
-            }
-        }
+    // Process Stack cards
+    if (document.HasMember("Stack") && document["Stack"].IsArray()) {
+        const auto& stack = document["Stack"].GetArray();
+        if (stack.Size() > 0) {
+            // The last card goes to stack B
+            const auto& lastCardInfo = stack[stack.Size() - 1];
+            stackCardsB.push(new CardModel(
+                static_cast<CardFaceType>(lastCardInfo["CardFace"].GetInt()),
+                static_cast<CardSuitType>(lastCardInfo["CardSuit"].GetInt()),
+                cocos2d::Vec2::ZERO
+            ));
 
-        std::sort(tempPlayfieldCards.begin(), tempPlayfieldCards.end(), [](CardModel* a, CardModel* b) {
-            return a->position.x > b->position.x;
-        });
-
-        if (!tempPlayfieldCards.empty()) {
-            std::stack<CardModel*>* currentStack = &playfieldCardsA;
-            currentStack->push(tempPlayfieldCards[0]);
-            for (size_t i = 1; i < tempPlayfieldCards.size(); ++i) {
-                if (std::abs(tempPlayfieldCards[i]->position.x - tempPlayfieldCards[i - 1]->position.x) != 50) {
-                    currentStack = (currentStack == &playfieldCardsA) ? &playfieldCardsB : &playfieldCardsA;
-                }
-                currentStack->push(tempPlayfieldCards[i]);
+            // The rest of the cards go to stack A
+            for (rapidjson::SizeType i = 0; i < stack.Size() - 1; ++i) {
+                const auto& cardInfo = stack[i];
+                stackCardsA.push(new CardModel(
+                    static_cast<CardFaceType>(cardInfo["CardFace"].GetInt()),
+                    static_cast<CardSuitType>(cardInfo["CardSuit"].GetInt()),
+                    cocos2d::Vec2::ZERO
+                ));
             }
         }
     }
 
-    // Process Stack cards
-    if (document.HasMember("Stack") && document["Stack"].IsArray()) {
-        std::stack<CardModel*> tempStack;
-        const rapidjson::Value& cards = document["Stack"];
-        for (rapidjson::SizeType i = 0; i < cards.Size(); i++) {
-            const rapidjson::Value& cardData = cards[i];
-            if (cardData.IsObject() && cardData.HasMember("CardFace") && cardData.HasMember("CardSuit")) {
-                CardModel* cardModel = new CardModel(
-                    static_cast<CardFaceType>(cardData["CardFace"].GetInt()),
-                    static_cast<CardSuitType>(cardData["CardSuit"].GetInt()),
-                    cocos2d::Vec2::ZERO
-                );
-                tempStack.push(cardModel);
+    // Process Playfield cards
+    if (document.HasMember("Playfield") && document["Playfield"].IsArray()) {
+        const auto& playfield = document["Playfield"].GetArray();
+        if (playfield.Size() > 0) {
+            std::vector<CardModel*> allCards;
+            for (rapidjson::SizeType i = 0; i < playfield.Size(); ++i) {
+                const auto& cardInfo = playfield[i];
+                allCards.push_back(new CardModel(
+                    static_cast<CardFaceType>(cardInfo["CardFace"].GetInt()),
+                    static_cast<CardSuitType>(cardInfo["CardSuit"].GetInt()),
+                    cocos2d::Vec2(cardInfo["Position"]["x"].GetFloat(), cardInfo["Position"]["y"].GetFloat())
+                ));
             }
-        }
 
-        if (!tempStack.empty()) {
-            stackCardsB.push(tempStack.top());
-            tempStack.pop();
-        }
-        while (!tempStack.empty()) {
-            stackCardsA.push(tempStack.top());
-            tempStack.pop();
+            if (!allCards.empty()) {
+                playfieldCardsA.push(allCards[0]);
+                for (size_t i = 1; i < allCards.size(); ++i) {
+                    if (std::abs(allCards[i]->position.x - allCards[i-1]->position.x) == 50) {
+                        playfieldCardsA.push(allCards[i]);
+                    } else {
+                        // A large jump in x-distance indicates the start of the second stack
+                        for(size_t j = i; j < allCards.size(); ++j) {
+                            playfieldCardsB.push(allCards[j]);
+                        }
+                        break;
+                    }
+                }
+            }
         }
     }
 }

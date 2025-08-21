@@ -17,10 +17,9 @@ class CardManager
 {
 public:
     /**
-     * @brief Gets the singleton instance of the CardManager.
-     * @return The singleton CardManager instance.
+     * @brief Constructor for the CardManager.
      */
-    static CardManager* getInstance();
+    CardManager();
 
     /**
      * @brief Processes the raw card data to create and distribute card models.
@@ -34,12 +33,7 @@ public:
     void processCardData(const rapidjson::Document& document, std::stack<CardModel*>& playfieldCardsA, std::stack<CardModel*>& playfieldCardsB, std::stack<CardModel*>& stackCardsA, std::stack<CardModel*>& stackCardsB);
 
 private:
-    /**
-     * @brief Private constructor for the singleton pattern.
-     */
-    CardManager();
 
-    static CardManager* _instance;
 };
 
 #endif // __CARD_MANAGER_H__
