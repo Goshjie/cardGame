@@ -51,6 +51,13 @@ public:
      */
     void moveCardFromAtoB();
 
+    /**
+     * @brief Tries to move a card from the playfield to stack B.
+     * @param card The card to be moved.
+     * @return True if the move was successful, false otherwise.
+     */
+    bool tryMoveCardFromPlayfieldToStack(CardModel* card);
+
 private:
     std::stack<CardModel*> _playfieldCardsA; ///< Cards in the first playfield area.
     std::stack<CardModel*> _playfieldCardsB; ///< Cards in the second playfield area.

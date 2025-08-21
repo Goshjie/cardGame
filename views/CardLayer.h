@@ -20,6 +20,7 @@ private:
     void _setPlayfieldCards();
     void _setStackfieldCards();
     void _adjustStackfieldPosition();
+    void _refreshPlayfieldLayer();
     void _refreshStackLayer();
 
     bool onTouchBegan(cocos2d::Touch* touch, cocos2d::Event* event);

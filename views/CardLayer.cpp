@@ -77,33 +77,32 @@ void CardLayer::_setPlayfieldCards()
     _playfieldCardsA.clear();
     _playfieldCardsB.clear();
 
-    // A-zone card logic: later cards cover earlier ones (top of stack on top)
-    auto stackACards = _controller->getPlayfieldCardsA();
-    std::stack<CardModel*> tempStackA = stackACards;
-    int zOrder = tempStackA.size();
-
+    // Logic for Stack A (newer cards on top)
+    std::stack<CardModel*> tempStackA = _controller->getPlayfieldCardsA();
+    int zOrderA = tempStackA.size();
     while (!tempStackA.empty()) {
         const auto* cardModel = tempStackA.top();
         auto card = CardSprite::create(cardModel);
         card->setPosition(cardModel->position);
-        _playfieldLayer->addChild(card, zOrder--); // Top card gets highest z-order
+        _playfieldLayer->addChild(card, zOrderA--);
         _playfieldCardsA.push_back(card);
         tempStackA.pop();
     }
 
-    // B-zone card logic: earlier cards cover later ones (top of stack at bottom)
-    auto stackBCards = _controller->getPlayfieldCardsB();
-    std::stack<CardModel*> tempStackB = stackBCards;
-
+    // Logic for Stack B (older cards on top)
+    std::stack<CardModel*> tempStackB = _controller->getPlayfieldCardsB();
+    int zOrderB = 1;
     while (!tempStackB.empty()) {
         const auto* cardModel = tempStackB.top();
         auto card = CardSprite::create(cardModel);
         card->setPosition(cardModel->position);
-        _playfieldLayer->addChild(card); // Default z-order, added in order, so top of stack is visually at bottom
+        _playfieldLayer->addChild(card, zOrderB++);
         _playfieldCardsB.push_back(card);
         tempStackB.pop();
     }
+    std::reverse(_playfieldCardsB.begin(), _playfieldCardsB.end());
 }
+
 
 void CardLayer::_setStackfieldCards()
 {
@@ -173,6 +172,14 @@ void CardLayer::_adjustStackfieldPosition()
     }
 }
 
+void CardLayer::_refreshPlayfieldLayer()
+{
+    _playfieldLayer->removeAllChildren();
+    _playfieldCardsA.clear();
+    _playfieldCardsB.clear();
+    _setPlayfieldCards();
+}
+
 void CardLayer::_refreshStackLayer()
 {
     _stackLayer->removeAllChildren();
@@ -198,25 +205,34 @@ bool CardLayer::onTouchBegan(Touch* touch, Event* event)
 
 bool CardLayer::_handlePlayfieldTouch(cocos2d::Touch* touch)
 {
-    auto check_touch = [this, touch](const std::vector<CardSprite*>& cards) -> bool {
-        Vec2 location = touch->getLocation();
-        for (auto cardSprite : cards)
+    Vec2 location = _playfieldLayer->convertToNodeSpace(touch->getLocation());
+
+    auto check_and_move_card = [this](CardSprite* cardSprite, const Vec2& location) -> bool {
+        if (cardSprite && cardSprite->getBoundingBox().containsPoint(location))
         {
-            if (cardSprite->getBoundingBox().containsPoint(location))
+            if (_controller->tryMoveCardFromPlayfieldToStack(const_cast<CardModel*>(cardSprite->getCardModel())))
             {
-                const CardModel* cardModel = cardSprite->getCardModel();
-                const char* suit_name[] = {"Club", "Diamond", "Heart", "Spade"};
-                const char* face_name[] = {"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"};
-                std::string info = "Touched Card: " + std::string(face_name[(int)cardModel->face]) + " of " + std::string(suit_name[(int)cardModel->suit]);
-                _touchInfoLabel->setString(info);
+                _refreshPlayfieldLayer();
+                _refreshStackLayer();
                 return true;
             }
         }
         return false;
     };
 
-    if (check_touch(_playfieldCardsA)) return true;
-    if (check_touch(_playfieldCardsB)) return true;
+    // Check the top card of stack A
+    if (!_playfieldCardsA.empty()) {
+        if (check_and_move_card(_playfieldCardsA.front(), location)) {
+            return true;
+        }
+    }
+
+    // Check the top card of stack B
+    if (!_playfieldCardsB.empty()) {
+        if (check_and_move_card(_playfieldCardsB.front(), location)) {
+            return true;
+        }
+    }
 
     return false;
 }

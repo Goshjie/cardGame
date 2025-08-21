@@ -4,6 +4,7 @@
 #include <stack>
 #include <vector>
 #include <algorithm>
+#include <cmath>
 
 USING_NS_CC;
 
@@ -49,14 +50,14 @@ void CardManager::processCardData(const rapidjson::Document& document, std::stac
         }
 
         std::sort(tempPlayfieldCards.begin(), tempPlayfieldCards.end(), [](CardModel* a, CardModel* b) {
-            return a->position.x < b->position.x;
+            return a->position.x > b->position.x;
         });
 
         if (!tempPlayfieldCards.empty()) {
             std::stack<CardModel*>* currentStack = &playfieldCardsA;
             currentStack->push(tempPlayfieldCards[0]);
             for (size_t i = 1; i < tempPlayfieldCards.size(); ++i) {
-                if (tempPlayfieldCards[i]->position.x - tempPlayfieldCards[i - 1]->position.x != 50) {
+                if (std::abs(tempPlayfieldCards[i]->position.x - tempPlayfieldCards[i - 1]->position.x) != 50) {
                     currentStack = (currentStack == &playfieldCardsA) ? &playfieldCardsB : &playfieldCardsA;
                 }
                 currentStack->push(tempPlayfieldCards[i]);
