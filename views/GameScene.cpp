@@ -1,33 +1,8 @@
-/****************************************************************************
- Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- 
- http://www.cocos2d-x.org
- 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
- 
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
- 
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
- ****************************************************************************/
-
-#include "GameScene.h"
-#include "SimpleAudioEngine.h"
+#include "views/GameScene.h"
+#include "controllers/GameController.h"
 #include "models/CardModel.h"
 #include "views/CardSprite.h"
-#include "json/rapidjson.h"
-#include "json/document.h"
+#include "SimpleAudioEngine.h"
 #include <vector>
 
 USING_NS_CC;
@@ -39,8 +14,8 @@ Scene* GameScene::createScene()
 
 static void problemLoading(const char* filename)
 {
-    printf("Error while loading: %s", filename);
-    printf("Depending on how you compiled you might have to add 'Resources/' in front of filenames in HelloWorldScene.cpp");
+    printf("Error while loading: %s\n", filename);
+    printf("Depending on how you compiled you might have to add 'Resources/' in front of filenames in HelloWorldScene.cpp\n");
 }
 
 bool GameScene::init()
@@ -50,85 +25,71 @@ bool GameScene::init()
         return false;
     }
 
-    initLayers();
-    loadAndProcessCards();
+    _controller = new GameController(this);
+    _controller->init();
+
+    _initLayers();
+    _setupUI();
 
     return true;
 }
 
-void GameScene::initLayers()
+void GameScene::_initLayers()
 {
     auto visibleSize = Director::getInstance()->getVisibleSize();
     
-    playfieldLayer = LayerColor::create(Color4B(204, 153, 51, 255), 1080, 1500);
-    playfieldLayer->setPosition(Vec2(0, 580));
-    this->addChild(playfieldLayer, 0);
+    _playfieldLayer = LayerColor::create(Color4B(204, 153, 51, 255), 1080, 1500);
+    _playfieldLayer->setPosition(Vec2(0, 580));
+    this->addChild(_playfieldLayer, 0);
 
-    stackLayer = LayerColor::create(Color4B(128, 0, 128, 255), 1080, 580);
-    stackLayer->setPosition(Vec2(0, 0));
-    this->addChild(stackLayer, 0);
+    _stackLayer = LayerColor::create(Color4B(128, 0, 128, 255), 1080, 580);
+    _stackLayer->setPosition(Vec2(0, 0));
+    this->addChild(_stackLayer, 0);
 }
 
-void GameScene::loadAndProcessCards()
+void GameScene::_setupUI()
 {
-    std::string fullPath = FileUtils::getInstance()->fullPathForFilename("res/level_0.json");
-    std::string contentStr = FileUtils::getInstance()->getStringFromFile(fullPath);
-
-    rapidjson::Document doc;
-    doc.Parse(contentStr.c_str());
-
-    if (doc.HasMember("Playfield"))
+    // Setup playfield cards
+    const auto& playfieldCards = _controller->getPlayfieldCards();
+    for (const auto& cardModel : playfieldCards)
     {
-        setupPlayfieldCards(doc["Playfield"]);
+        auto card = CardSprite::create(cardModel.face, cardModel.suit);
+        card->setPosition(cardModel.position);
+        _playfieldLayer->addChild(card);
     }
 
-    if (doc.HasMember("Stack"))
-    {
-        setupStackCards(doc["Stack"]);
-    }
-}
-
-void GameScene::setupPlayfieldCards(const rapidjson::Value& playfieldData)
-{
-    for (rapidjson::SizeType i = 0; i < playfieldData.Size(); i++)
-    {
-        const rapidjson::Value& cardInfo = playfieldData[i];
-        auto card = CardSprite::create(
-            static_cast<CardFaceType>(cardInfo["CardFace"].GetInt()),
-            static_cast<CardSuitType>(cardInfo["CardSuit"].GetInt())
-        );
-        card->setPosition(Vec2(cardInfo["Position"]["x"].GetFloat(), cardInfo["Position"]["y"].GetFloat()));
-        playfieldLayer->addChild(card);
-    }
-}
-
-void GameScene::setupStackCards(const rapidjson::Value& stackData)
-{
+    // Setup stack cards
+    const auto& stackCardModels = _controller->getStackCards();
     auto visibleSize = Director::getInstance()->getVisibleSize();
-    int numCards = stackData.Size();
+    int numCards = stackCardModels.size();
     if (numCards <= 0) return;
 
     std::vector<CardSprite*> partACards;
     CardSprite* partBCard = nullptr;
 
-    for (rapidjson::SizeType i = 0; i < stackData.Size(); i++)
+    for (int i = 0; i < numCards; ++i)
     {
-        const rapidjson::Value& cardInfo = stackData[i];
-        auto card = CardSprite::create(
-            static_cast<CardFaceType>(cardInfo["CardFace"].GetInt()),
-            static_cast<CardSuitType>(cardInfo["CardSuit"].GetInt())
-        );
+        const auto& cardModel = stackCardModels[i];
+        auto card = CardSprite::create(cardModel.face, cardModel.suit);
         
         if (i == numCards - 1) {
             partBCard = card;
         } else {
             partACards.push_back(card);
         }
-        stackLayer->addChild(card);
+        _stackLayer->addChild(card);
     }
 
-    float cardWidth = partACards.empty() ? partBCard->getContentSize().width : partACards[0]->getContentSize().width;
-    float yPosition = 300.0f;
+    float cardWidth = 0;
+    if (partBCard) {
+        cardWidth = partBCard->getContentSize().width;
+    } else if (!partACards.empty()) {
+        cardWidth = partACards[0]->getContentSize().width;
+    }
+
+    if (cardWidth == 0) return; // No cards to layout
+
+    float yPosition = _stackLayer->getContentSize().height / 2;
     float gap = 40.0f;
 
     // Layout for Part A

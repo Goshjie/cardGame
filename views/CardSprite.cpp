@@ -31,7 +31,7 @@ bool CardSprite::init(CardFaceType face, CardSuitType suit)
     const char* suit_name[] = {"club", "diamond", "heart", "spade"};
     const char* face_name[] = {"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"};
     const char* color_name[] = {"black", "red"};
-    int color_idx = ((int)suit == (int)CardSuitType::CST_DIAMONDS || (int)suit == (int)CardSuitType::CST_HEARTS) ? 1 : 0;
+    int color_idx = (suit == CardSuitType::Diamonds || suit == CardSuitType::Hearts) ? 1 : 0;
 
     // 1. Big number in the center
     auto bigFaceSprite = Sprite::create(StringUtils::format("number/big_%s_%s.png", color_name[color_idx], face_name[(int)face]));
