@@ -2,7 +2,8 @@
 
 #include "cocos2d.h"
 #include "models/CardModel.h"
-#include "json/document.h"
+#include "services/CardService.h"
+#include "managers/CardManager.h"
 #include <vector>
 
 class GameScene; // Forward declaration
@@ -33,38 +34,16 @@ public:
      * @brief Gets the cards for the playfield.
      * @return A const reference to the vector of playfield card models.
      */
-    const std::vector<CardModel>& getPlayfieldCards() const;
+    const std::vector<CardModel*>& getPlayfieldCards() const;
 
     /**
      * @brief Gets the cards for the stack.
      * @return A const reference to the vector of stack card models.
      */
-    const std::vector<CardModel>& getStackCards() const;
+    const std::vector<CardModel*>& getStackCards() const;
 
 private:
-    /**
-     * @brief Loads card data from the JSON file and processes it.
-     */
-    void _loadAndProcessCards();
-
-    /**
-     * @brief Sets up the playfield cards based on the provided data.
-     * @param playfieldData The rapidjson value containing the playfield card data.
-     */
-    void _setupPlayfieldCards(const rapidjson::Value& playfieldData);
-
-    /**
-     * @brief Sets up the stack cards based on the provided data.
-     * @param stackData The rapidjson value containing the stack card data.
-     */
-    void _setupStackCards(const rapidjson::Value& stackData);
-
-    /// @brief A pointer to the view (GameScene).
     GameScene* _view;
-
-    /// @brief The collection of card models for the playfield.
-    std::vector<CardModel> _playfieldCards;
-
-    /// @brief The collection of card models for the stack.
-    std::vector<CardModel> _stackCards;
+    std::vector<CardModel*> _playfieldCards;
+    std::vector<CardModel*> _stackCards;
 };

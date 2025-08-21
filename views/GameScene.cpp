@@ -51,10 +51,10 @@ void GameScene::_setupUI()
 {
     // Setup playfield cards
     const auto& playfieldCards = _controller->getPlayfieldCards();
-    for (const auto& cardModel : playfieldCards)
+    for (const auto* cardModel : playfieldCards)
     {
-        auto card = CardSprite::create(cardModel.face, cardModel.suit);
-        card->setPosition(cardModel.position);
+        auto card = CardSprite::create(cardModel->face, cardModel->suit);
+        card->setPosition(cardModel->position);
         _playfieldLayer->addChild(card);
     }
 
@@ -69,8 +69,8 @@ void GameScene::_setupUI()
 
     for (int i = 0; i < numCards; ++i)
     {
-        const auto& cardModel = stackCardModels[i];
-        auto card = CardSprite::create(cardModel.face, cardModel.suit);
+        const auto* cardModel = stackCardModels[i];
+        auto card = CardSprite::create(cardModel->face, cardModel->suit);
         
         if (i == numCards - 1) {
             partBCard = card;

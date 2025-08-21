@@ -51,9 +51,9 @@ public:
      * @brief Constructor for the CardModel class.
      * @param face The face type of the card.
      * @param suit The suit type of the card.
-     * @param position The position of the card on the screen.
+     * @param position The initial position of the card.
      */
-    CardModel(CardFaceType face, CardSuitType suit, cocos2d::Vec2 position)
+    CardModel(CardFaceType face, CardSuitType suit, const cocos2d::Vec2& position)
         : face(face), suit(suit), position(position) {}
 
     /// @brief The face type of the card.
