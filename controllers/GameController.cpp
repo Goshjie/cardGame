@@ -156,6 +156,10 @@ void GameController::rollbackLastMove()
 {
     if (!_stackCardsB.empty()) {
         CardModel* card = _stackCardsB.top();
+        if (card->owner == CardOwner::NONE) {
+            // This is an initial card, do not roll back.
+            return;
+        }
         switch (card->owner) {
             case CardOwner::PLAYFIELD_A:
                 _playfieldCardsA.push(card);
