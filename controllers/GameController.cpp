@@ -12,12 +12,17 @@ GameController::GameController()
 void GameController::init()
 {
     rapidjson::Document cardData = CardService::getInstance()->getCardData();
-    CardManager::getInstance()->processCardData(cardData, _playfieldCards, _stackCardsA, _stackCardsB);
+    CardManager::getInstance()->processCardData(cardData, _playfieldCardsA, _playfieldCardsB, _stackCardsA, _stackCardsB);
 }
 
-const std::vector<CardModel*>& GameController::getPlayfieldCards() const
+const std::stack<CardModel*>& GameController::getPlayfieldCardsA() const
 {
-    return _playfieldCards;
+    return _playfieldCardsA;
+}
+
+const std::stack<CardModel*>& GameController::getPlayfieldCardsB() const
+{
+    return _playfieldCardsB;
 }
 
 const std::stack<CardModel*>& GameController::getStackCardsA() const

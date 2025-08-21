@@ -73,12 +73,35 @@ void CardLayer::_setupUI()
 
 void CardLayer::_setPlayfieldCards()
 {
-    const auto& playfieldCards = _controller->getPlayfieldCards();
-    for (const auto* cardModel : playfieldCards)
-    {
+    _playfieldLayer->removeAllChildren();
+    _playfieldCardsA.clear();
+    _playfieldCardsB.clear();
+
+    // A-zone card logic: later cards cover earlier ones (top of stack on top)
+    auto stackACards = _controller->getPlayfieldCardsA();
+    std::stack<CardModel*> tempStackA = stackACards;
+    int zOrder = tempStackA.size();
+
+    while (!tempStackA.empty()) {
+        const auto* cardModel = tempStackA.top();
         auto card = CardSprite::create(cardModel);
         card->setPosition(cardModel->position);
-        _playfieldLayer->addChild(card);
+        _playfieldLayer->addChild(card, zOrder--); // Top card gets highest z-order
+        _playfieldCardsA.push_back(card);
+        tempStackA.pop();
+    }
+
+    // B-zone card logic: earlier cards cover later ones (top of stack at bottom)
+    auto stackBCards = _controller->getPlayfieldCardsB();
+    std::stack<CardModel*> tempStackB = stackBCards;
+
+    while (!tempStackB.empty()) {
+        const auto* cardModel = tempStackB.top();
+        auto card = CardSprite::create(cardModel);
+        card->setPosition(cardModel->position);
+        _playfieldLayer->addChild(card); // Default z-order, added in order, so top of stack is visually at bottom
+        _playfieldCardsB.push_back(card);
+        tempStackB.pop();
     }
 }
 
@@ -175,13 +198,11 @@ bool CardLayer::onTouchBegan(Touch* touch, Event* event)
 
 bool CardLayer::_handlePlayfieldTouch(cocos2d::Touch* touch)
 {
-    Vec2 location = touch->getLocation();
-    for (auto card : _playfieldLayer->getChildren())
-    {
-        if (card->getBoundingBox().containsPoint(location))
+    auto check_touch = [this, touch](const std::vector<CardSprite*>& cards) -> bool {
+        Vec2 location = touch->getLocation();
+        for (auto cardSprite : cards)
         {
-            CardSprite* cardSprite = dynamic_cast<CardSprite*>(card);
-            if (cardSprite)
+            if (cardSprite->getBoundingBox().containsPoint(location))
             {
                 const CardModel* cardModel = cardSprite->getCardModel();
                 const char* suit_name[] = {"Club", "Diamond", "Heart", "Spade"};
@@ -191,7 +212,12 @@ bool CardLayer::_handlePlayfieldTouch(cocos2d::Touch* touch)
                 return true;
             }
         }
-    }
+        return false;
+    };
+
+    if (check_touch(_playfieldCardsA)) return true;
+    if (check_touch(_playfieldCardsB)) return true;
+
     return false;
 }
 

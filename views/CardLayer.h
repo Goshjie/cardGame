@@ -33,6 +33,8 @@ private:
     GameController* _controller;
     cocos2d::Layer* _playfieldLayer;
     cocos2d::Layer* _stackLayer;
+    std::vector<CardSprite*> _playfieldCardsA;
+    std::vector<CardSprite*> _playfieldCardsB;
     std::vector<CardSprite*> _partAStackCards;
     CardSprite* _partBStackCard;
     cocos2d::Label* _touchInfoLabel;

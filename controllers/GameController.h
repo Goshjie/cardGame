@@ -31,7 +31,8 @@ public:
      * @brief Gets the cards for the playfield.
      * @return A const reference to the vector of playfield card models.
      */
-    const std::vector<CardModel*>& getPlayfieldCards() const;
+    const std::stack<CardModel*>& getPlayfieldCardsA() const;
+    const std::stack<CardModel*>& getPlayfieldCardsB() const;
 
     /**
      * @brief Gets the cards for the stack area A (alternative area).
@@ -51,7 +52,8 @@ public:
     void moveCardFromAtoB();
 
 private:
-    std::vector<CardModel*> _playfieldCards;
-    std::stack<CardModel*> _stackCardsA; // Alternative area
-    std::stack<CardModel*> _stackCardsB; // Current hand area
+    std::stack<CardModel*> _playfieldCardsA; ///< Cards in the first playfield area.
+    std::stack<CardModel*> _playfieldCardsB; ///< Cards in the second playfield area.
+    std::stack<CardModel*> _stackCardsA;     ///< Cards in the stack area A.
+    std::stack<CardModel*> _stackCardsB;     ///< Cards in the stack area B.
 };

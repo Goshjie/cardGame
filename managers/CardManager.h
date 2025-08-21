@@ -26,11 +26,12 @@ public:
      * @brief Processes the raw card data to create and distribute card models.
      *
      * @param document The raw card data from CardService.
-     * @param playfieldCards A vector to be populated with playfield cards.
+     * @param playfieldCardsA A stack to be populated with playfield cards for area A.
+     * @param playfieldCardsB A stack to be populated with playfield cards for area B.
      * @param stackCardsA A stack to be populated with stack cards for area A.
      * @param stackCardsB A stack to be populated with stack cards for area B.
      */
-    void processCardData(const rapidjson::Document& document, std::vector<CardModel*>& playfieldCards, std::stack<CardModel*>& stackCardsA, std::stack<CardModel*>& stackCardsB);
+    void processCardData(const rapidjson::Document& document, std::stack<CardModel*>& playfieldCardsA, std::stack<CardModel*>& playfieldCardsB, std::stack<CardModel*>& stackCardsA, std::stack<CardModel*>& stackCardsB);
 
 private:
     /**
