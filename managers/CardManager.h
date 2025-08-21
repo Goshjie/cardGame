@@ -4,6 +4,7 @@
 #include "cocos2d.h"
 #include "models/CardModel.h"
 #include "json/document.h"
+#include <stack>
 
 /**
  * @class CardManager
@@ -26,9 +27,10 @@ public:
      *
      * @param document The raw card data from CardService.
      * @param playfieldCards A vector to be populated with playfield cards.
-     * @param stackCards A vector to be populated with stack cards.
+     * @param stackCardsA A stack to be populated with stack cards for area A.
+     * @param stackCardsB A stack to be populated with stack cards for area B.
      */
-    void processCardData(const rapidjson::Document& document, std::vector<CardModel*>& playfieldCards, std::vector<CardModel*>& stackCards);
+    void processCardData(const rapidjson::Document& document, std::vector<CardModel*>& playfieldCards, std::stack<CardModel*>& stackCardsA, std::stack<CardModel*>& stackCardsB);
 
 private:
     /**

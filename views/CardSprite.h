@@ -17,26 +17,27 @@ class CardSprite : public cocos2d::Sprite
 public:
     /**
      * @brief Creates a new CardSprite instance.
-     * @param face The face type of the card.
-     * @param suit The suit type of the card.
+     * @param model The data model for the card.
      * @return A pointer to the created CardSprite.
      */
-    static CardSprite* create(CardFaceType face, CardSuitType suit);
+    static CardSprite* create(const CardModel* model);
 
     /**
      * @brief Initializes the CardSprite instance.
-     * @param face The face type of the card.
-     * @param suit The suit type of the card.
+     * @param model The data model for the card.
      * @return True if initialization is successful, false otherwise.
      */
-    virtual bool init(CardFaceType face, CardSuitType suit);
+    virtual bool init(const CardModel* model);
+
+    /**
+     * @brief Gets the card model associated with this sprite.
+     * @return A pointer to the card model.
+     */
+    const CardModel* getCardModel() const { return _model; }
 
 private:
-    /// @brief The face type of the card.
-    CardFaceType _face;
-
-    /// @brief The suit type of the card.
-    CardSuitType _suit;
+    /// @brief The card's data model.
+    const CardModel* _model;
 };
 
 #endif // __CARD_SPRITE_H__

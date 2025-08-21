@@ -5,6 +5,7 @@
 #include "services/CardService.h"
 #include "managers/CardManager.h"
 #include <vector>
+#include <stack>
 
 class GameScene; // Forward declaration
 
@@ -19,11 +20,7 @@ class GameScene; // Forward declaration
 class GameController
 {
 public:
-    /**
-     * @brief Constructor for the GameController.
-     * @param view A pointer to the GameScene view that this controller will manage.
-     */
-    GameController(GameScene* view);
+    GameController();
 
     /**
      * @brief Initializes the controller, loading card data.
@@ -37,13 +34,24 @@ public:
     const std::vector<CardModel*>& getPlayfieldCards() const;
 
     /**
-     * @brief Gets the cards for the stack.
-     * @return A const reference to the vector of stack card models.
+     * @brief Gets the cards for the stack area A (alternative area).
+     * @return A const reference to the stack of card models for area A.
      */
-    const std::vector<CardModel*>& getStackCards() const;
+    const std::stack<CardModel*>& getStackCardsA() const;
+
+    /**
+     * @brief Gets the cards for the stack area B (current hand area).
+     * @return A const reference to the stack of card models for area B.
+     */
+    const std::stack<CardModel*>& getStackCardsB() const;
+
+    /**
+     * @brief Moves a card from stack A to stack B.
+     */
+    void moveCardFromAtoB();
 
 private:
-    GameScene* _view;
     std::vector<CardModel*> _playfieldCards;
-    std::vector<CardModel*> _stackCards;
+    std::stack<CardModel*> _stackCardsA; // Alternative area
+    std::stack<CardModel*> _stackCardsB; // Current hand area
 };
