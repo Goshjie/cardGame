@@ -87,7 +87,9 @@ const std::stack<CardModel*>& GameController::getStackCardsB() const
 void GameController::moveCardFromAtoB()
 {
     if (!_stackCardsA.empty()) {
-        _stackCardsB.push(_stackCardsA.top());
+        CardModel* card = _stackCardsA.top();
+        card->owner = CardOwner::STACK_A;
+        _stackCardsB.push(card);
         _stackCardsA.pop();
     }
 }
@@ -108,6 +110,7 @@ bool GameController::tryMoveCardFromPlayfieldToStack(CardModel* card)
         while (!_playfieldCardsA.empty()) {
             if (_playfieldCardsA.top() == card) {
                 found = true;
+                card->owner = CardOwner::PLAYFIELD_A;
                 _playfieldCardsA.pop();
                 break;
             }
@@ -128,6 +131,7 @@ bool GameController::tryMoveCardFromPlayfieldToStack(CardModel* card)
         while (!_playfieldCardsB.empty()) {
             if (_playfieldCardsB.top() == card) {
                 found = true;
+                card->owner = CardOwner::PLAYFIELD_B;
                 _playfieldCardsB.pop();
                 break;
             }
@@ -146,4 +150,26 @@ bool GameController::tryMoveCardFromPlayfieldToStack(CardModel* card)
     }
 
     return false;
+}
+
+void GameController::rollbackLastMove()
+{
+    if (!_stackCardsB.empty()) {
+        CardModel* card = _stackCardsB.top();
+        switch (card->owner) {
+            case CardOwner::PLAYFIELD_A:
+                _playfieldCardsA.push(card);
+                break;
+            case CardOwner::PLAYFIELD_B:
+                _playfieldCardsB.push(card);
+                break;
+            case CardOwner::STACK_A:
+                _stackCardsA.push(card);
+                break;
+            default:
+                // Should not happen
+                break;
+        }
+        _stackCardsB.pop();
+    }
 }

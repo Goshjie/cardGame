@@ -58,6 +58,8 @@ public:
      */
     bool tryMoveCardFromPlayfieldToStack(CardModel* card);
 
+    void rollbackLastMove();
+
 private:
     std::stack<CardModel*> _playfieldCardsA; ///< Cards in the first playfield area.
     std::stack<CardModel*> _playfieldCardsB; ///< Cards in the second playfield area.

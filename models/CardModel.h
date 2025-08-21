@@ -4,6 +4,18 @@
 #include "cocos2d.h"
 
 /**
+ * @enum CardOwner
+ * @brief Defines the original stack of a card before it was moved.
+ */
+enum class CardOwner 
+{
+    NONE,
+    PLAYFIELD_A,
+    PLAYFIELD_B,
+    STACK_A
+};
+
+/**
  * @enum CardSuitType
  * @brief Defines the suit of a card (Clubs, Diamonds, Hearts, Spades).
  */
@@ -48,24 +60,18 @@ class CardModel
 {
 public:
     /**
-     * @brief Constructor for the CardModel class.
-     * @param face The face type of the card.
-     * @param suit The suit type of the card.
+     * @brief Constructor for CardModel.
+     * @param face The face value of the card.
+     * @param suit The suit of the card.
      * @param position The initial position of the card.
      */
     CardModel(CardFaceType face, CardSuitType suit, const cocos2d::Vec2& position)
-        : face(face), suit(suit), position(position) {}
+        : face(face), suit(suit), position(position), owner(CardOwner::NONE) {}
 
-    /// @brief The face type of the card.
-    // 数值
-    CardFaceType face;
-
-    /// @brief The suit type of the card.
-    // 花色
-    CardSuitType suit;
-
-    /// @brief The position of the card.
-    cocos2d::Vec2 position;
+    CardFaceType face;      ///< The face value of the card.
+    CardSuitType suit;      ///< The suit of the card.
+    cocos2d::Vec2 position; ///< The position of the card.
+    CardOwner owner;        ///< The original stack of the card.
 };
 
 #endif // __CARD_MODEL_H__

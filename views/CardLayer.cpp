@@ -69,11 +69,11 @@ void CardLayer::_setupUI()
     _setPlayfieldCards();
     _setStackfieldCards();
 
-    _backButton = cocos2d::ui::Button::create();
-    _backButton->setTitleText("Back");
-    _backButton->setTitleFontSize(48);
-    _backButton->addClickEventListener(CC_CALLBACK_1(CardLayer::_onBackClicked, this));
-    this->addChild(_backButton);
+    _rollbackButton = cocos2d::ui::Button::create();
+    _rollbackButton->setTitleText("Rollback");
+    _rollbackButton->setTitleFontSize(48);
+    _rollbackButton->addClickEventListener(CC_CALLBACK_1(CardLayer::_onRollbackClicked, this));
+    this->addChild(_rollbackButton);
 
     _adjustStackfieldPosition();
 }
@@ -159,7 +159,7 @@ void CardLayer::_adjustStackfieldPosition()
     }
 
     float totalWidthB = _partBStackCard ? cardWidth : 0;
-    float buttonWidth = _backButton ? _backButton->getContentSize().width : 0;
+    float buttonWidth = _rollbackButton ? _rollbackButton->getContentSize().width : 0;
 
     // --- Calculate total layout width for centering ---
     std::vector<float> widths;
@@ -195,8 +195,8 @@ void CardLayer::_adjustStackfieldPosition()
     }
 
     // Position back button
-    if (_backButton) {
-        _backButton->setPosition(Vec2(currentX + buttonWidth / 2.0f, yPosition));
+    if (_rollbackButton) {
+        _rollbackButton->setPosition(Vec2(currentX + buttonWidth / 2.0f, yPosition));
     }
 }
 
@@ -280,10 +280,11 @@ bool CardLayer::_handleStackLayerTouch(cocos2d::Touch* touch)
     return false;
 }
 
-void CardLayer::_onBackClicked(cocos2d::Ref* sender)
+void CardLayer::_onRollbackClicked(cocos2d::Ref* sender)
 {
-    _touchInfoLabel->setString("back success");
-    cocos2d::log("back success");
+    _controller->rollbackLastMove();
+    _refreshPlayfieldLayer();
+    _refreshStackLayer();
 }
 
 void CardLayer::onTouchMoved(Touch* touch, Event* event){}
