@@ -2,6 +2,7 @@
 #define __CARD_LAYER_H__
 
 #include "cocos2d.h"
+#include "ui/CocosGUI.h"
 #include "models/CardModel.h"
 #include "views/CardSprite.h"
 #include <vector>
@@ -27,6 +28,7 @@ private:
     void onTouchMoved(cocos2d::Touch* touch, cocos2d::Event* event);
     void onTouchEnded(cocos2d::Touch* touch, cocos2d::Event* event);
     void onTouchCancelled(cocos2d::Touch* touch, cocos2d::Event* event);
+    void _onBackClicked(cocos2d::Ref* sender);
 
     bool _handlePlayfieldTouch(cocos2d::Touch* touch);
     bool _handleStackLayerTouch(cocos2d::Touch* touch);
@@ -38,6 +40,7 @@ private:
     std::vector<CardSprite*> _playfieldCardsB;
     std::vector<CardSprite*> _partAStackCards;
     CardSprite* _partBStackCard;
+    cocos2d::ui::Button* _backButton;
     cocos2d::Label* _touchInfoLabel;
 };
 

@@ -68,6 +68,13 @@ void CardLayer::_setupUI()
 {
     _setPlayfieldCards();
     _setStackfieldCards();
+
+    _backButton = cocos2d::ui::Button::create();
+    _backButton->setTitleText("Back");
+    _backButton->setTitleFontSize(48);
+    _backButton->addClickEventListener(CC_CALLBACK_1(CardLayer::_onBackClicked, this));
+    this->addChild(_backButton);
+
     _adjustStackfieldPosition();
 }
 
@@ -169,6 +176,7 @@ void CardLayer::_adjustStackfieldPosition()
     if (_partBStackCard != nullptr) {
         currentX = startX + totalWidthA + (numPartACards > 0 ? gap : 0);
         _partBStackCard->setPosition(Vec2(currentX + cardWidth / 2.0f, yPosition));
+        _backButton->setPosition(Vec2(_partBStackCard->getPosition().x + _partBStackCard->getContentSize().width / 2 + 20 + _backButton->getContentSize().width / 2, yPosition));
     }
 }
 
@@ -250,6 +258,12 @@ bool CardLayer::_handleStackLayerTouch(cocos2d::Touch* touch)
         }
     }
     return false;
+}
+
+void CardLayer::_onBackClicked(cocos2d::Ref* sender)
+{
+    _touchInfoLabel->setString("back success");
+    cocos2d::log("back success");
 }
 
 void CardLayer::onTouchMoved(Touch* touch, Event* event){}
