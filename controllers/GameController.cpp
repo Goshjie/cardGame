@@ -76,6 +76,8 @@ bool GameController::_findAndMoveCard(std::stack<CardModel*>& playfield, CardMod
     return found;
 }
 
+
+
 bool GameController::tryMoveCardFromPlayfieldToStack(CardModel* card)
 {
     if (_stackCardsB.empty()) {
