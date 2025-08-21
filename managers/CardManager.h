@@ -33,7 +33,9 @@ public:
     void processCardData(const rapidjson::Document& document, std::stack<CardModel*>& playfieldCardsA, std::stack<CardModel*>& playfieldCardsB, std::stack<CardModel*>& stackCardsA, std::stack<CardModel*>& stackCardsB);
 
 private:
-
+    CardModel* _createCardModelFromJson(const rapidjson::Value& cardInfo);
+    void _processStackCards(const rapidjson::Value& stackData, std::stack<CardModel*>& stackCardsA, std::stack<CardModel*>& stackCardsB);
+    void _processPlayfieldCards(const rapidjson::Value& playfieldData, std::stack<CardModel*>& playfieldCardsA, std::stack<CardModel*>& playfieldCardsB);
 };
 
 #endif // __CARD_MANAGER_H__

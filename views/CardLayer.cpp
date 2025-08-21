@@ -137,45 +137,41 @@ void CardLayer::_setStackfieldCards()
     }
 }
 
-void CardLayer::_adjustStackfieldPosition()
+void CardLayer::_calculateComponentWidths(float& widthA, float& widthB, float& widthButton, float& spacingA, float& cardWidth)
 {
-    auto visibleSize = Director::getInstance()->getVisibleSize();
-    float yPosition = _stackLayer->getContentSize().height / 2;
-    float gap = 40.0f;
-
-    // --- Calculate widths of all components ---
-    float cardWidth = 0;
+    cardWidth = 0;
     if (!_partAStackCards.empty()) {
         cardWidth = _partAStackCards[0]->getContentSize().width;
     } else if (_partBStackCard) {
         cardWidth = _partBStackCard->getContentSize().width;
     }
 
-    float totalWidthA = 0;
-    float spacingA = 0;
+    widthA = 0;
+    spacingA = 0;
     if (!_partAStackCards.empty()) {
         spacingA = cardWidth * 0.3f; // Let cards overlap
-        totalWidthA = cardWidth + (_partAStackCards.size() - 1) * spacingA;
+        widthA = cardWidth + (_partAStackCards.size() - 1) * spacingA;
     }
 
-    float totalWidthB = _partBStackCard ? cardWidth : 0;
-    float buttonWidth = _rollbackButton ? _rollbackButton->getContentSize().width : 0;
+    widthB = _partBStackCard ? cardWidth : 0;
+    widthButton = _rollbackButton ? _rollbackButton->getContentSize().width : 0;
+}
 
-    // --- Calculate total layout width for centering ---
-    std::vector<float> widths;
-    if (totalWidthA > 0) widths.push_back(totalWidthA);
-    if (totalWidthB > 0) widths.push_back(totalWidthB);
-    if (buttonWidth > 0) widths.push_back(buttonWidth);
-
+float CardLayer::_calculateTotalLayoutWidth(const std::vector<float>& widths, float gap)
+{
     float totalLayoutWidth = 0;
-    for(size_t i = 0; i < widths.size(); ++i) {
-        totalLayoutWidth += widths[i];
+    for(float width : widths) {
+        totalLayoutWidth += width;
     }
     if (widths.size() > 1) {
         totalLayoutWidth += (widths.size() - 1) * gap;
     }
+    return totalLayoutWidth;
+}
 
-    // --- Position elements ---
+void CardLayer::_positionElements(float totalLayoutWidth, float widthA, float widthB, float widthButton, float spacingA, float cardWidth, float yPosition, float gap)
+{
+    auto visibleSize = Director::getInstance()->getVisibleSize();
     float currentX = (visibleSize.width - totalLayoutWidth) / 2.0f;
 
     // Position stack A
@@ -185,19 +181,37 @@ void CardLayer::_adjustStackfieldPosition()
             card->setPosition(Vec2(cardAnchorX + cardWidth / 2.0f, yPosition));
             cardAnchorX += spacingA;
         }
-        currentX += totalWidthA + gap;
+        currentX += widthA + gap;
     }
 
     // Position stack B
     if (_partBStackCard) {
         _partBStackCard->setPosition(Vec2(currentX + cardWidth / 2.0f, yPosition));
-        currentX += totalWidthB + gap;
+        currentX += widthB + gap;
     }
 
     // Position back button
     if (_rollbackButton) {
-        _rollbackButton->setPosition(Vec2(currentX + buttonWidth / 2.0f, yPosition));
+        _rollbackButton->setPosition(Vec2(currentX + widthButton / 2.0f, yPosition));
     }
+}
+
+void CardLayer::_adjustStackfieldPosition()
+{
+    float yPosition = _stackLayer->getContentSize().height / 2;
+    float gap = 40.0f;
+
+    float widthA, widthB, widthButton, spacingA, cardWidth;
+    _calculateComponentWidths(widthA, widthB, widthButton, spacingA, cardWidth);
+
+    std::vector<float> widths;
+    if (widthA > 0) widths.push_back(widthA);
+    if (widthB > 0) widths.push_back(widthB);
+    if (widthButton > 0) widths.push_back(widthButton);
+
+    float totalLayoutWidth = _calculateTotalLayoutWidth(widths, gap);
+
+    _positionElements(totalLayoutWidth, widthA, widthB, widthButton, spacingA, cardWidth, yPosition, gap);
 }
 
 void CardLayer::_refreshPlayfieldLayer()

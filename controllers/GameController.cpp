@@ -47,6 +47,35 @@ void GameController::moveCardFromAtoB()
     }
 }
 
+bool GameController::_findAndMoveCard(std::stack<CardModel*>& playfield, CardModel* card, CardOwner owner)
+{
+    std::stack<CardModel*> tempStack;
+    bool found = false;
+
+    while (!playfield.empty()) {
+        if (playfield.top() == card) {
+            found = true;
+            card->owner = owner;
+            playfield.pop();
+            break;
+        }
+        tempStack.push(playfield.top());
+        playfield.pop();
+    }
+
+    // Restore the remaining cards back to the playfield
+    while (!tempStack.empty()) {
+        playfield.push(tempStack.top());
+        tempStack.pop();
+    }
+
+    if (found) {
+        _stackCardsB.push(card);
+    }
+
+    return found;
+}
+
 bool GameController::tryMoveCardFromPlayfieldToStack(CardModel* card)
 {
     if (_stackCardsB.empty()) {
@@ -55,51 +84,13 @@ bool GameController::tryMoveCardFromPlayfieldToStack(CardModel* card)
 
     CardModel* topCard = _stackCardsB.top();
     if (std::abs(static_cast<int>(card->face) - static_cast<int>(topCard->face)) == 1) {
-        // Found a match, now move the card
-        std::stack<CardModel*> tempStack;
-        bool found = false;
-
-        // Search in playfield A
-        while (!_playfieldCardsA.empty()) {
-            if (_playfieldCardsA.top() == card) {
-                found = true;
-                card->owner = CardOwner::PLAYFIELD_A;
-                _playfieldCardsA.pop();
-                break;
-            }
-            tempStack.push(_playfieldCardsA.top());
-            _playfieldCardsA.pop();
-        }
-        while (!tempStack.empty()) {
-            _playfieldCardsA.push(tempStack.top());
-            tempStack.pop();
-        }
-
-        if (found) {
-            _stackCardsB.push(card);
+        // Try to find and move the card from playfield A first
+        if (_findAndMoveCard(_playfieldCardsA, card, CardOwner::PLAYFIELD_A)) {
             return true;
         }
-
-        // Search in playfield B
-        while (!_playfieldCardsB.empty()) {
-            if (_playfieldCardsB.top() == card) {
-                found = true;
-                card->owner = CardOwner::PLAYFIELD_B;
-                _playfieldCardsB.pop();
-                break;
-            }
-            tempStack.push(_playfieldCardsB.top());
-            _playfieldCardsB.pop();
-        }
-        while (!tempStack.empty()) {
-            _playfieldCardsB.push(tempStack.top());
-            tempStack.pop();
-        }
-
-        if (found) {
-            _stackCardsB.push(card);
-            return true;
-        }
+        
+        // If not found in playfield A, try playfield B
+        return _findAndMoveCard(_playfieldCardsB, card, CardOwner::PLAYFIELD_B);
     }
 
     return false;

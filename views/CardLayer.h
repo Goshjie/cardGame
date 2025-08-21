@@ -21,6 +21,9 @@ private:
     void _setPlayfieldCards();
     void _setStackfieldCards();
     void _adjustStackfieldPosition();
+    void _calculateComponentWidths(float& widthA, float& widthB, float& widthButton, float& spacingA, float& cardWidth);
+    float _calculateTotalLayoutWidth(const std::vector<float>& widths, float gap);
+    void _positionElements(float totalLayoutWidth, float widthA, float widthB, float widthButton, float spacingA, float cardWidth, float yPosition, float gap);
     void _refreshPlayfieldLayer();
     void _refreshStackLayer();
 

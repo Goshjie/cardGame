@@ -61,6 +61,7 @@ public:
     void rollbackLastMove();
 
 private:
+    bool _findAndMoveCard(std::stack<CardModel*>& playfield, CardModel* card, CardOwner owner);
     CardManager* _cardManager;               ///< Manages card data and creation.
     std::stack<CardModel*> _playfieldCardsA; ///< Cards in the first playfield area.
     std::stack<CardModel*> _playfieldCardsB; ///< Cards in the second playfield area.
