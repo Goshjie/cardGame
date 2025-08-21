@@ -1,7 +1,6 @@
 #include "views/GameScene.h"
 #include "controllers/GameController.h"
 #include "models/CardModel.h"
-#include "views/CardSprite.h"
 #include "SimpleAudioEngine.h"
 #include <vector>
 
@@ -49,6 +48,14 @@ void GameScene::_initLayers()
 
 void GameScene::_setupUI()
 {
+    _setPlayfieldCards();
+
+    _setStackfieldCards();
+
+    
+}
+
+void GameScene::_setPlayfieldCards(){
     // Setup playfield cards
     const auto& playfieldCards = _controller->getPlayfieldCards();
     for (const auto* cardModel : playfieldCards)
@@ -57,10 +64,11 @@ void GameScene::_setupUI()
         card->setPosition(cardModel->position);
         _playfieldLayer->addChild(card);
     }
+}
 
+void GameScene::_setStackfieldCards(){
     // Setup stack cards
     const auto& stackCardModels = _controller->getStackCards();
-    auto visibleSize = Director::getInstance()->getVisibleSize();
     int numCards = stackCardModels.size();
     if (numCards <= 0) return;
 
@@ -80,6 +88,11 @@ void GameScene::_setupUI()
         _stackLayer->addChild(card);
     }
 
+    _adjustStackfieldPosition(partACards, partBCard);
+}
+
+void GameScene::_adjustStackfieldPosition(std::vector<CardSprite*>& partACards, CardSprite* partBCard){
+    auto visibleSize = Director::getInstance()->getVisibleSize();
     float cardWidth = 0;
     if (partBCard) {
         cardWidth = partBCard->getContentSize().width;

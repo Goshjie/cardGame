@@ -57,9 +57,11 @@ public:
         : face(face), suit(suit), position(position) {}
 
     /// @brief The face type of the card.
+    // 数值
     CardFaceType face;
 
     /// @brief The suit type of the card.
+    // 花色
     CardSuitType suit;
 
     /// @brief The position of the card.

@@ -2,6 +2,8 @@
 #define __GAME_SCENE_H__
 
 #include "cocos2d.h"
+#include "views/CardSprite.h"
+#include <vector>
 
 class GameController;
 
@@ -47,6 +49,11 @@ private:
      * @brief Sets up the user interface, including cards.
      */
     void _setupUI();
+
+    void _setPlayfieldCards();
+    void _setStackfieldCards();
+
+    void _adjustStackfieldPosition(std::vector<CardSprite*>& partACards, CardSprite* partBCard);
 
     /// @brief Layer for the playfield cards.
     cocos2d::LayerColor* _playfieldLayer;
