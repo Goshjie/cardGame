@@ -96,18 +96,17 @@ void CardLayer::_setPlayfieldCards()
         tempStackA.pop();
     }
 
-    // Logic for Stack B (older cards on top)
+    // Logic for Stack B (newer cards on top)
     std::stack<CardModel*> tempStackB = _controller->getPlayfieldCardsB();
-    int zOrderB = 1;
+    int zOrderB = tempStackB.size();
     while (!tempStackB.empty()) {
         const auto* cardModel = tempStackB.top();
         auto card = CardSprite::create(cardModel);
         card->setPosition(cardModel->position);
-        _playfieldLayer->addChild(card, zOrderB++);
+        _playfieldLayer->addChild(card, zOrderB--);
         _playfieldCardsB.push_back(card);
         tempStackB.pop();
     }
-    std::reverse(_playfieldCardsB.begin(), _playfieldCardsB.end());
 }
 
 
@@ -141,42 +140,63 @@ void CardLayer::_setStackfieldCards()
 void CardLayer::_adjustStackfieldPosition()
 {
     auto visibleSize = Director::getInstance()->getVisibleSize();
-    float cardWidth = 0;
-    if (_partBStackCard) {
-        cardWidth = _partBStackCard->getContentSize().width;
-    } else if (!_partAStackCards.empty()) {
-        cardWidth = _partAStackCards[0]->getContentSize().width;
-    }
-
-    if (cardWidth == 0) return; // No cards to layout
-
     float yPosition = _stackLayer->getContentSize().height / 2;
     float gap = 40.0f;
 
+    // --- Calculate widths of all components ---
+    float cardWidth = 0;
+    if (!_partAStackCards.empty()) {
+        cardWidth = _partAStackCards[0]->getContentSize().width;
+    } else if (_partBStackCard) {
+        cardWidth = _partBStackCard->getContentSize().width;
+    }
+
     float totalWidthA = 0;
     float spacingA = 0;
-    int numPartACards = _partAStackCards.size();
-    if (numPartACards > 0) {
-        spacingA = cardWidth * 0.8f;
-        totalWidthA = cardWidth + (numPartACards - 1) * spacingA;
+    if (!_partAStackCards.empty()) {
+        spacingA = cardWidth * 0.3f; // Let cards overlap
+        totalWidthA = cardWidth + (_partAStackCards.size() - 1) * spacingA;
     }
 
-    float totalWidthB = (_partBStackCard != nullptr) ? cardWidth : 0;
+    float totalWidthB = _partBStackCard ? cardWidth : 0;
+    float buttonWidth = _backButton ? _backButton->getContentSize().width : 0;
 
-    float totalLayoutWidth = totalWidthA + totalWidthB + (numPartACards > 0 && _partBStackCard != nullptr ? gap : 0);
-    float startX = (visibleSize.width - totalLayoutWidth) / 2.0f;
+    // --- Calculate total layout width for centering ---
+    std::vector<float> widths;
+    if (totalWidthA > 0) widths.push_back(totalWidthA);
+    if (totalWidthB > 0) widths.push_back(totalWidthB);
+    if (buttonWidth > 0) widths.push_back(buttonWidth);
 
-    float currentX = startX;
-    for (int i = 0; i < numPartACards; ++i)
-    {
-        _partAStackCards[i]->setPosition(Vec2(currentX + cardWidth / 2.0f, yPosition));
-        currentX += spacingA;
+    float totalLayoutWidth = 0;
+    for(size_t i = 0; i < widths.size(); ++i) {
+        totalLayoutWidth += widths[i];
+    }
+    if (widths.size() > 1) {
+        totalLayoutWidth += (widths.size() - 1) * gap;
     }
 
-    if (_partBStackCard != nullptr) {
-        currentX = startX + totalWidthA + (numPartACards > 0 ? gap : 0);
+    // --- Position elements ---
+    float currentX = (visibleSize.width - totalLayoutWidth) / 2.0f;
+
+    // Position stack A
+    if (!_partAStackCards.empty()) {
+        float cardAnchorX = currentX;
+        for (auto& card : _partAStackCards) {
+            card->setPosition(Vec2(cardAnchorX + cardWidth / 2.0f, yPosition));
+            cardAnchorX += spacingA;
+        }
+        currentX += totalWidthA + gap;
+    }
+
+    // Position stack B
+    if (_partBStackCard) {
         _partBStackCard->setPosition(Vec2(currentX + cardWidth / 2.0f, yPosition));
-        _backButton->setPosition(Vec2(_partBStackCard->getPosition().x + _partBStackCard->getContentSize().width / 2 + 20 + _backButton->getContentSize().width / 2, yPosition));
+        currentX += totalWidthB + gap;
+    }
+
+    // Position back button
+    if (_backButton) {
+        _backButton->setPosition(Vec2(currentX + buttonWidth / 2.0f, yPosition));
     }
 }
 
